@@ -113,9 +113,11 @@ def main(argv=None):
         config_file.replace("/", "-").replace(".cfg", "")
     )
 
+    valid_batch_size = 16
+
     with tf.Graph().as_default(), tf.device("/cpu:0"):
         train_dataset = get_train_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=params['batchsize']*6)
-        valid_dataset = get_valid_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=params['batchsize']*1)
+        valid_dataset = get_valid_dataset_pipeline(valid_batch_size, params['max_epoch'], buffer_size=valid_batch_size)
 
         train_iterator = train_dataset.make_one_shot_iterator()
         valid_iterator = valid_dataset.make_one_shot_iterator()
@@ -176,8 +178,8 @@ def main(argv=None):
         tf.summary.scalar("loss_lastlayer_heat", last_heat_loss)
         summary_merge_op = tf.summary.merge_all()
 
-        pred_result_image = tf.placeholder(tf.float32, shape=[params['batchsize'], 480, 640, 3])
-        pred_result__summary = tf.summary.image("pred_result_image", pred_result_image, params['batchsize'])
+        pred_result_image = tf.placeholder(tf.float32, shape=[valid_batch_size, 480, 640, 3])
+        pred_result__summary = tf.summary.image("pred_result_image", pred_result_image, valid_batch_size)
 
         init = tf.global_variables_initializer()
         config = tf.ConfigProto()
@@ -203,13 +205,13 @@ def main(argv=None):
                 if step != 0 and step % params['per_update_tensorboard_step'] == 0:
                     # False will speed up the training time.
                     # if params['pred_image_on_tensorboard'] is True:
-                    if step != 0 and step % 1000:
+                    if step != 0 and step % 1000 == 0:
                         valid_loss_value, valid_lh_loss, valid_in_image, valid_in_heat, valid_p_heat = sess.run(
                             [loss, last_heat_loss, input_image, input_heat, pred_heat],
                             feed_dict={handle: valid_handle}
                         )
                         result = []
-                        for index in range(params['batchsize']):
+                        for index in range(valid_batch_size):
                             r = CocoPose.display_image(
                                     valid_in_image[index,:,:,:],
                                     valid_in_heat[index,:,:,:],
