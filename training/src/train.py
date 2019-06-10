@@ -114,8 +114,8 @@ def main(argv=None):
     )
 
     with tf.Graph().as_default(), tf.device("/cpu:0"):
-        train_dataset = get_train_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=100)
-        valid_dataset = get_valid_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=100)
+        train_dataset = get_train_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=params['batchsize']*6)
+        valid_dataset = get_valid_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=params['batchsize']*1)
 
         train_iterator = train_dataset.make_one_shot_iterator()
         valid_iterator = valid_dataset.make_one_shot_iterator()
@@ -202,7 +202,8 @@ def main(argv=None):
 
                 if step != 0 and step % params['per_update_tensorboard_step'] == 0:
                     # False will speed up the training time.
-                    if params['pred_image_on_tensorboard'] is True:
+                    # if params['pred_image_on_tensorboard'] is True:
+                    if step != 0 and step % 1000:
                         valid_loss_value, valid_lh_loss, valid_in_image, valid_in_heat, valid_p_heat = sess.run(
                             [loss, last_heat_loss, input_image, input_heat, pred_heat],
                             feed_dict={handle: valid_handle}
