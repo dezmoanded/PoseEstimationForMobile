@@ -116,7 +116,7 @@ def main(argv=None):
     valid_batch_size = 16
 
     with tf.Graph().as_default(), tf.device("/cpu:0"):
-        train_dataset = get_train_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=params['batchsize']*6)
+        train_dataset = get_train_dataset_pipeline(params['batchsize'], params['max_epoch'], buffer_size=100)
         valid_dataset = get_valid_dataset_pipeline(valid_batch_size, params['max_epoch'], buffer_size=valid_batch_size)
 
         train_iterator = train_dataset.make_one_shot_iterator()
